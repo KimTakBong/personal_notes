@@ -9,36 +9,85 @@
 
 Library lain dapat dilihat di file `composer.json` (PHP) dan `package.json` (JS).
 
+# Cara Install & Menjalankan
+
+1. **Clone repository & masuk folder**
+   ```bash
+   git clone https://github.com/KimTakBong/personal_notes
+   cd personal_notes
+   ```
+
+2. **Install dependency PHP & JS**
+   ```bash
+   composer install
+   npm install
+   ```
+
+3. **Copy file .env & generate key**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Set database di .env**
+   - Edit DB_DATABASE, DB_USERNAME, DB_PASSWORD sesuai database lokal Anda
+
+5. **Jalankan migrasi & seeder**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Jalankan server Laravel & Vite**
+   ```bash
+   php artisan serve
+   npm run dev
+   ```
+
+7. **Akses aplikasi**
+   - Buka browser ke http://localhost:8000/notes
+
+
 # Struktur Database & Penjelasan Field
 
-1. users
-   - id: primary key user
-   - name/email/password: data user
-   - timestamps: waktu buat/update
+### 1. users
+| Field      | Tipe Data | Keterangan                |
+|----------- |-----------|---------------------------|
+| id         | UUID (PK) | Primary key user          |
+| name       | string    | Nama user                 |
+| email      | string    | Email user (unique)       |
+| password   | string    | Password (hash)           |
+| timestamps | datetime  | created_at, updated_at    |
 
-2. notes
-   - id: primary key note
-   - user_id: pemilik note (relasi ke users)
-   - title: judul note
-   - content: isi note
-   - timestamps: waktu buat/update
+### 2. notes
+| Field      | Tipe Data | Keterangan                        |
+|----------- |-----------|-----------------------------------|
+| id         | UUID (PK) | Primary key note                  |
+| user_id    | UUID (FK) | Pemilik note (relasi ke users)    |
+| title      | string    | Judul note                        |
+| content    | text      | Isi note                          |
+| is_public  | boolean   | Status public/private             |
+| timestamps | datetime  | created_at, updated_at            |
 
-3. note_user (pivot/shared_notes)
-   - id: primary key
-   - note_id: relasi ke notes
-   - user_id: user yang menerima share
-   - is_read: status sudah dibaca/belum (0/1)
-   - is_updated: status note diupdate (0/1)
-   - timestamps: waktu buat/update
+### 3. note_user (pivot/shared_notes)
+| Field      | Tipe Data | Keterangan                                |
+|----------- |-----------|-------------------------------------------|
+| id         | UUID (PK) | Primary key                               |
+| note_id    | UUID (FK) | Relasi ke notes                           |
+| user_id    | UUID (FK) | User yang menerima share (relasi ke users)|
+| is_read    | boolean   | Status sudah dibaca/belum (0/1)           |
+| is_updated | boolean   | Status note diupdate (0/1)                |
+| timestamps | datetime  | created_at, updated_at                    |
 
-4. comments
-   - id: primary key
-   - note_id: relasi ke notes
-   - user_id: pembuat komentar
-   - content: isi komentar
-   - is_read_owner: status sudah dibaca owner (0/1)
-   - is_read_shared: status sudah dibaca penerima share (0/1)
-   - timestamps: waktu buat/update
+### 4. comments
+| Field         | Tipe Data | Keterangan                                 |
+|-------------- |-----------|--------------------------------------------|
+| id            | UUID (PK) | Primary key                                |
+| note_id       | UUID (FK) | Relasi ke notes                            |
+| user_id       | UUID (FK) | Pembuat komentar (relasi ke users)         |
+| content       | text      | Isi komentar                               |
+| is_read_owner | boolean   | Status sudah dibaca owner (0/1)            |
+| is_read_shared| boolean   | Status sudah dibaca penerima share (0/1)   |
+| timestamps    | datetime  | created_at, updated_at                     |
 
 
 # Fitur Aplikasi Personal Notes
