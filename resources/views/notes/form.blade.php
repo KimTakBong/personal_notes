@@ -8,18 +8,26 @@
         
         <form method="POST" action="{{ route('notes.store') }}">
             @csrf
-            
+            @if(isset($note))
+                @method('PUT')
+            @endif
+
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Title</label>
-                <input type="text" name="title" value="" class="w-full px-3 py-2 border rounded">
+                <input type="text" name="title" value="{{ old('title', $note->title ?? '') }}" class="w-full px-3 py-2 border rounded">
             </div>
-            
+
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Content</label>
                 <textarea id="content" name="content" rows="20"
-                    class="w-full px-3 py-2 border rounded min-h-[300px] min-w-full"></textarea>
+                    class="w-full px-3 py-2 border rounded min-h-[300px] min-w-full">{{ old('content', $note->content ?? '') }}</textarea>
             </div>
-            
+            <div class="mb-4 flex items-center gap-2">
+                <input type="checkbox" name="is_public" id="is_public" value="1" {{ old('is_public', $note->is_public ?? false) ? 'checked' : '' }}>
+                <label for="is_public" class="font-semibold">Public Note</label>
+                <span class="text-xs text-gray-400">(Jika dicentang, note bisa diakses publik via URL)</span>
+            </div>
+
             <button id="noteFormSubmitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
                 Save Note
             </button>

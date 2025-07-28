@@ -4,19 +4,19 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up()
+    public function up(): void
     {
-        Schema::table('note_user', function (Blueprint $table) {
+        Schema::create('note_user', function (Blueprint $table) {
+            $table->uuid('note_id');
+            $table->uuid('user_id');
             $table->boolean('is_read')->default(false);
             $table->boolean('is_updated')->default(false);
             $table->timestamp('last_shared_at')->nullable();
+            $table->primary(['note_id', 'user_id']);
         });
     }
-
-    public function down()
+    public function down(): void
     {
-        Schema::table('note_user', function (Blueprint $table) {
-            $table->dropColumn(['is_read', 'is_updated', 'last_shared_at']);
-        });
+        Schema::dropIfExists('note_user');
     }
 };

@@ -66,6 +66,7 @@
                         @endphp
                         <span class="ml-2 bg-white text-green-600 rounded-full px-2 py-0.5 text-xs font-bold">{{ $sharedCount }}</span>
                     </button>
+                    <a href="{{ route('notes.show', $note) }}" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded flex items-center">Detail</a>
                     <button class="open-comments-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center" data-note-id="{{ $note->id }}" data-note-title="{{ $note->title }}">
                         Comments
                         @php
@@ -121,6 +122,7 @@
                 </h2>
                 <div class="flex items-center space-x-2">
                     <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded">Shared by: {{ $note->owner->email ?? '-' }}</span>
+                    <a href="{{ route('notes.show', $note) }}" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center">Detail</a>
                     {{-- tombol mark as read dihapus, sekarang auto mark as read saat buka tab --}}
                     <button class="open-comments-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center" data-note-id="{{ $note->id }}" data-note-title="{{ $note->title }}">
                         Comments
@@ -433,6 +435,11 @@
                 html += '</div>';
             });
             $('#commentsList').html(html);
+            // Scroll otomatis ke bawah (komentar terbaru)
+            var commentsList = document.getElementById('commentsList');
+            if (commentsList) {
+                commentsList.scrollTop = commentsList.scrollHeight;
+            }
         }
         // ESC key closes all modals
         $(document).on('keydown', function(e) {

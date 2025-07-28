@@ -8,9 +8,21 @@ use App\Models\User;
 use App\Models\Comment;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
+
 class NoteController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Display the specified note detail page.
+     */
+    public function show($id)
+    {
+        $note = Note::with(['comments.user', 'sharedWith'])->findOrFail($id);
+        $sharedUsers = $note->sharedWith;
+        $comments = $note->comments()->with('user')->orderBy('created_at')->get();
+        return view('notes.show', compact('note', 'sharedUsers', 'comments'));
+    }
 
     /**
      * Display a listing of the resource.
@@ -39,21 +51,13 @@ class NoteController extends Controller
     {
         $request->validate([
             'title' => 'required|max:255',
-            'content' => 'required'
+            'content' => 'required',
+            'is_public' => 'nullable|boolean',
         ]);
-
-        $create = auth()->user()->notes()->create($request->all());
-        // dd($request->all(), $create->toArray());
-
+        $data = $request->all();
+        $data['is_public'] = $request->has('is_public');
+        $create = auth()->user()->notes()->create($data);
         return redirect()->route('notes.index')->with('success', 'Note created!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
@@ -72,22 +76,25 @@ class NoteController extends Controller
     public function update(Request $request, Note $note)
     {
         $this->authorize('update', $note);
-    
-        $request->validate([
-            'title' => 'required|max:255',
-            'content' => 'required'
-        ]);
-
-        $note->update($request->all());
-
+        $validateRules = [
+            'is_public' => 'nullable|boolean',
+        ];
+        if ($request->has('title')) {
+            $validateRules['title'] = 'required|max:255';
+        }
+        if ($request->has('content')) {
+            $validateRules['content'] = 'required';
+        }
+        $validated = $request->validate($validateRules);
+        $validated['is_public'] = $request->has('is_public');
+        $update = $note->update($validated);
         // Set notif updated ke semua user yang menerima share note ini
         $note->sharedWith()->syncWithoutDetaching(
             $note->sharedWith->pluck('id')->mapWithKeys(function($id) {
                 return [$id => ['is_updated' => 1, 'is_read' => 0]];
             })->toArray()
         );
-
-        return redirect()->route('notes.index')->with('success', 'Note updated!');
+        return redirect()->route('notes.show', $note)->with('success', 'Note updated!');
     }
 
     /**
@@ -153,7 +160,13 @@ class NoteController extends Controller
             return response()->json(['success' => true]);
         }
 
-        // Jika bukan AJAX, redirect
+        // Cek referer, jika dari detail note, redirect ke detail
+        $referer = request()->headers->get('referer');
+        $detailUrl = route('notes.show', $note, false);
+        if ($referer && str_contains($referer, $detailUrl)) {
+            return redirect()->route('notes.show', $note)->with('success', 'Note unshare!');
+        }
+        // Default: redirect ke index
         return redirect()->route('notes.index')->with('success', 'Note unshare!');
     }
 
@@ -184,19 +197,28 @@ class NoteController extends Controller
      */
     public function addComment(Request $request, Note $note)
     {
+        $user = $request->user();
+        // Access control for comments
+        if ($note->is_public) {
+            if (!$user) {
+                abort(403, 'Login required to comment on public notes.');
+            }
+        } else {
+            // Private note: only owner or shared users can comment
+            $isOwner = $note->user_id === $user->id;
+            $isShared = $note->sharedUsers()->where('user_id', $user->id)->exists();
+            if (!$isOwner && !$isShared) {
+                abort(403, 'You do not have permission to comment on this note.');
+            }
+        }
         $request->validate([
             'content' => 'required|string|max:1000',
         ]);
-        $user = auth()->user();
-        $isOwner = $note->user_id === $user->id;
-        $comment = $note->comments()->create([
+        $note->comments()->create([
             'user_id' => $user->id,
             'content' => $request->content,
-            'is_read_owner' => $isOwner ? true : false,
-            'is_read_shared' => $isOwner ? false : true,
         ]);
-        $comment->load('user');
-        return response()->json($comment);
+        return back();
     }
 
     /**
@@ -212,5 +234,19 @@ class NoteController extends Controller
             $note->comments()->where('is_read_shared', false)->where('user_id', '!=', $user->id)->update(['is_read_shared' => true]);
         }
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Public view for a note (no login required if public)
+     */
+    public function publicShow($id)
+    {
+        $note = Note::with(['comments.user', 'sharedWith', 'user'])->findOrFail($id);
+        if (!$note->is_public) {
+            abort(403, 'This note is private.');
+        }
+        $sharedUsers = $note->sharedWith;
+        $comments = $note->comments()->with('user')->orderBy('created_at')->get();
+        return view('notes.public_show', compact('note', 'sharedUsers', 'comments'));
     }
 }

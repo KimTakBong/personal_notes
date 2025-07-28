@@ -6,8 +6,13 @@ use App\Http\Controllers\NoteController;
 use Illuminate\Http\Request;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('notes.index');
+    }
     return redirect()->route('login');
 });
+
+Route::get('/public-notes/{note}', [NoteController::class, 'publicShow'])->name('notes.public.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

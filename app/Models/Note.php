@@ -3,10 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Note extends Model
 {
-    protected $fillable = ['title', 'content'];
+    protected $fillable = ['title', 'content', 'is_public'];
+    public $incrementing = false;
+    protected $keyType = 'string';
+    // Alias for sharedWith, for compatibility with controller code
+    public function sharedUsers()
+    {
+        return $this->sharedWith();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
 
     public function user()
     {

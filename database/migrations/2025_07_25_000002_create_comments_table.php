@@ -7,13 +7,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('note_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->uuid('note_id');
+            $table->uuid('user_id');
             $table->text('content');
             $table->boolean('is_read_owner')->default(false); // notifikasi untuk owner
             $table->boolean('is_read_shared')->default(false); // notifikasi untuk shared user
             $table->timestamps();
+
+            $table->foreign('note_id')->references('id')->on('notes')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
