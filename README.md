@@ -92,6 +92,20 @@ Library lain dapat dilihat di file `composer.json` (PHP) dan `package.json` (JS)
 
 # Fitur Aplikasi Personal Notes
 
+# Flow Aplikasi
+
+1. **User mendaftar/login** ke aplikasi.
+2. Setelah login, user diarahkan ke halaman daftar catatan (notes).
+3. User dapat membuat catatan baru, mengedit, menghapus, atau melihat detail catatan.
+4. Di halaman detail, owner bisa mengedit note langsung (modal), mengatur public/private, dan membagikan note ke user lain via email.
+5. User yang menerima share akan melihat note di tab "Shared Notes" dan bisa mengakses detail serta berkomentar.
+6. Semua user yang punya akses (owner, shared, public jika public) bisa menulis komentar pada note.
+7. Notifikasi badge muncul jika ada komentar baru atau note baru/diupdate.
+8. Semua aksi utama (CRUD, share, komentar, edit profile) menggunakan modal/AJAX untuk UX yang lebih baik.
+9. Owner bisa menghapus akses (unshare) user tertentu dari note.
+10. Semua relasi data menggunakan UUID, dan validasi form dilakukan di sisi server & client.
+
+
 ## 1. Autentikasi & User
 - Register, login, logout (Laravel Breeze/Jetstream)
 - Redirect otomatis ke halaman /notes setelah login/register
