@@ -4,7 +4,7 @@
 - Laravel Breeze/Jetstream (digunakan untuk auth)
 - jQuery (AJAX & DOM, untuk interaksi dinamis di halaman)
 - Tailwind CSS (styling UI)
-- CKEditor (rich text editor untuk catatan, jika diaktifkan)
+- CKEditor (rich text editor untuk catatan)
 - Vite (build tool untuk asset frontend)
 
 Library lain dapat dilihat di file `composer.json` (PHP) dan `package.json` (JS).
